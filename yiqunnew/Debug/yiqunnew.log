@@ -1,0 +1,5 @@
+﻿  main.cpp
+h:\discrete mathematics\work\yiqunnew\yiqunnew\main.cpp(161): warning C4018: “<”: 有符号/无符号不匹配
+h:\discrete mathematics\work\yiqunnew\yiqunnew\main.cpp(175): warning C4018: “<”: 有符号/无符号不匹配
+  yiqunnew.vcxproj -> H:\Discrete mathematics\work\yiqunnew\Debug\yiqunnew.exe
+  yiqunnew.vcxproj -> H:\Discrete mathematics\work\yiqunnew\Debug\yiqunnew.pdb (Partial PDB)
