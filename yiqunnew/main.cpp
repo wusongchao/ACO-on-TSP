@@ -175,12 +175,10 @@ int main()
 
 			calculateDeltaTauPerAnt(deltaTauTotal, Q, &path, currentDistance);
 			
+			currentDistance += graphMatrix[current][startNum];
+
 			if (currentDistance < bestLength) {
 				bestLength = currentDistance;
-				std::cout << currentDistance << std::endl;
-				for (auto &p : path) {
-					std::cout << p << ' ';
-				}
 				std::copy(path.cbegin(), path.cend(), bestPath.begin());
 			}
 		}
@@ -191,11 +189,7 @@ int main()
 	for (auto &p : bestPath) {
 		std::cout << p << ' ';
 	}
-	double bestLength1 = 0;
-	for (int i = 0;i < bestPath.size() - 1;i++) {
-		bestLength1 += graphMatrix[i][i + 1];
-	}
-	std::cout << '\n' << bestLength1 << std::endl;
+	std::cout << '\n' << bestLength << std::endl;
 	getchar();
 	getchar();
 	return 0;
