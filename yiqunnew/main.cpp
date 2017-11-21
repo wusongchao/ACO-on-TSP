@@ -25,7 +25,7 @@ void clearAllowed(bool* allowed, int cityNum)
 }
 
 int calculateProbabilityAndSelect(double Tau[][MAX_POINT_NUM], double heuristicValue[][MAX_POINT_NUM],
-	bool allowed[], int currentCityIndex, int cityNum, double alpha, double beta)
+	bool allowed[], int currentCityIndex, int cityNum, double alpha, double beta, std::default_random_engine* randomEngine)
 {
 	std::map<int, double> probability;
 	
@@ -45,9 +45,8 @@ int calculateProbabilityAndSelect(double Tau[][MAX_POINT_NUM], double heuristicV
 	}else {
 		double sumSelect = 0;
 
-		std::default_random_engine randomEngine;
 		std::uniform_real_distribution<double> randomDistribution(0, 1);
-		double generatedProbablity = randomDistribution(randomEngine);
+		double generatedProbablity = randomDistribution(*randomEngine);
 		
 		for (auto &r : probability) {
 			r.second = r.second / denominatorSum;
@@ -110,9 +109,14 @@ int main()
 	for (auto &p : points) {
 		cityNum++;
 		for (auto &pr : points) {
-			double val = sqrt((p.x - pr.x)*(p.x - pr.x) + (p.y - pr.y)*(p.y - pr.y));
-			graphMatrix[p.index][pr.index] = graphMatrix[pr.index][p.index] = val;
-			heuristicValue[p.index][pr.index] = heuristicValue[pr.index][p.index] = 1 / val;
+			if (p.index != pr.index) {
+				double val = sqrt((p.x - pr.x)*(p.x - pr.x) + (p.y - pr.y)*(p.y - pr.y));
+				graphMatrix[p.index][pr.index] = graphMatrix[pr.index][p.index] = val;
+				heuristicValue[p.index][pr.index] = heuristicValue[pr.index][p.index] = 1 / val;
+			}else {
+				graphMatrix[p.index][pr.index] = graphMatrix[pr.index][p.index] = 0;
+				heuristicValue[p.index][pr.index] = heuristicValue[pr.index][p.index] = 0;
+			}
 		}
 	}
 
@@ -135,11 +139,11 @@ int main()
 		}
 	}
 
+	std::default_random_engine randomEngine;
+	std::uniform_int_distribution<int> randomDistribution(1, cityNum);
+
 	int iterCounter = 0;
 	while (iterCounter < iterTimes) {
-		std::default_random_engine randomEngine;
-		std::uniform_int_distribution<int> randomDistribution(1, cityNum);
-
 		double deltaTauTotal[MAX_POINT_NUM][MAX_POINT_NUM];
 		for (int i = 1;i <= cityNum;i++) {
 			for (int j = 1;j <= cityNum;j++) {
@@ -160,7 +164,7 @@ int main()
 
 			int current = startNum;
 			while (path.size() < cityNum) {
-				int next = calculateProbabilityAndSelect(Tau, heuristicValue, allowed, current, cityNum, alpha, beta);
+				int next = calculateProbabilityAndSelect(Tau, heuristicValue, allowed, current, cityNum, alpha, beta, &randomEngine);
 				
 				//add it to path and update distance
 				path.push_back(next);
@@ -173,7 +177,10 @@ int main()
 			
 			if (currentDistance < bestLength) {
 				bestLength = currentDistance;
-
+				std::cout << currentDistance << std::endl;
+				for (auto &p : path) {
+					std::cout << p << ' ';
+				}
 				std::copy(path.cbegin(), path.cend(), bestPath.begin());
 			}
 		}
@@ -184,7 +191,11 @@ int main()
 	for (auto &p : bestPath) {
 		std::cout << p << ' ';
 	}
-	std::cout << '\n' << bestLength << std::endl;
+	double bestLength1 = 0;
+	for (int i = 0;i < bestPath.size() - 1;i++) {
+		bestLength1 += graphMatrix[i][i + 1];
+	}
+	std::cout << '\n' << bestLength1 << std::endl;
 	getchar();
 	getchar();
 	return 0;
