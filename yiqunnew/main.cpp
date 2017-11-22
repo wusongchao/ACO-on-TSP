@@ -79,7 +79,7 @@ void updateTau(double Tau[][MAX_POINT_NUM], double deltaTauTotal[][MAX_POINT_NUM
 	for (int i = 1;i <= cityNum;i++) {
 		for (int j = 1;j <= cityNum;j++) {
 			double val = (1.0 - rho) * Tau[i][j] + deltaTauTotal[i][j];
-			Tau[j][i] = Tau[i][j] = val;
+			Tau[i][j] = val;
 		}
 	}
 }
@@ -135,7 +135,7 @@ int main()
 
 	for (int i = 1;i <= cityNum;i++) {
 		for (int j = 1;j <= cityNum;j++) {
-			Tau[i][j] = 0;
+			Tau[i][j] = 1;
 		}
 	}
 
