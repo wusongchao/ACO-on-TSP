@@ -24,8 +24,8 @@ void clearAllowed(bool* allowed, int cityNum)
 	}
 }
 
-int calculateProbabilityAndSelect(double Tau[][MAX_POINT_NUM], double heuristicValue[][MAX_POINT_NUM],
-	bool allowed[], int currentCityIndex, int cityNum, double alpha, double beta, std::default_random_engine* randomEngine)
+int calculateProbabilityAndSelect(const double Tau[][MAX_POINT_NUM], const double heuristicValue[][MAX_POINT_NUM],
+	bool allowed[], int currentCityIndex, int cityNum, double alpha, double beta, std::default_random_engine& randomEngine)
 {
 	std::map<int, double> probability;
 	
@@ -46,7 +46,7 @@ int calculateProbabilityAndSelect(double Tau[][MAX_POINT_NUM], double heuristicV
 		double sumSelect = 0;
 
 		std::uniform_real_distribution<double> randomDistribution(0, 1);
-		double generatedProbablity = randomDistribution(*randomEngine);
+		double generatedProbablity = randomDistribution(randomEngine);
 		
 		for (auto &r : probability) {
 			r.second = r.second / denominatorSum;
@@ -64,15 +64,39 @@ int calculateProbabilityAndSelect(double Tau[][MAX_POINT_NUM], double heuristicV
 	return selectedCityIndex;
 }
 
-void calculateDeltaTauPerAnt(double deltaTau[][MAX_POINT_NUM], int Q, std::vector<int>* path, double antPathLength)
+void calculateDeltaTauPerAnt(double deltaTau[][MAX_POINT_NUM], int Q, std::vector<int>& path, double antPathLength)
 {
-	for (int k = 0, pathLength = path->size()-1;k < pathLength;k++) {
-		int i = path->operator[](k);
-		int j = path->operator[](k + 1);
+	for (int k = 0, pathLength = path.size()-1;k < pathLength;k++) {
+		int i = path[k];
+		int j = path[k + 1];
 		deltaTau[i][j] = deltaTau[j][i] += Q / antPathLength;
 	}
 }
 
+void constructPath(const double graphMatrix[][MAX_POINT_NUM],const double Tau[][MAX_POINT_NUM], const double heuristicValue[][MAX_POINT_NUM],
+	std::vector<int>& path, double& currentDistance, int cityNum, double alpha, double beta, std::default_random_engine& randomEngine, std::uniform_int_distribution<int>& randomDistribution)
+{
+	bool allowed[MAX_POINT_NUM];
+	//double currentDistance = 0;
+	clearAllowed(allowed, cityNum);
+
+	int startNum = randomDistribution(randomEngine);
+	path.push_back(startNum);
+	allowed[startNum] = false;
+
+	int current = startNum;
+	while (path.size() < cityNum) {
+		int next = calculateProbabilityAndSelect(Tau, heuristicValue, allowed, current, cityNum, alpha, beta, randomEngine);
+
+		//add it to path and update distance
+		path.push_back(next);
+		currentDistance += graphMatrix[current][next];
+
+		current = next;
+	}
+
+	currentDistance += graphMatrix[current][startNum];
+}
 
 void updateTau(double Tau[][MAX_POINT_NUM], double deltaTauTotal[][MAX_POINT_NUM], double rho, int cityNum)
 {
@@ -152,30 +176,32 @@ int main()
 		}
 
 		for (int i = 0;i < antNum;i++) {
+			
 			//for each ant
-			bool allowed[MAX_POINT_NUM];
+			//bool allowed[MAX_POINT_NUM];
 			std::vector<int> path;
 			double currentDistance = 0;
-			clearAllowed(allowed, cityNum);
+			//clearAllowed(allowed, cityNum);
 
-			int startNum = randomDistribution(randomEngine);
-			path.push_back(startNum);
-			allowed[startNum] = false;
+			constructPath(graphMatrix, Tau, heuristicValue, path, currentDistance, cityNum, alpha, beta, randomEngine, randomDistribution);
 
-			int current = startNum;
-			while (path.size() < cityNum) {
-				int next = calculateProbabilityAndSelect(Tau, heuristicValue, allowed, current, cityNum, alpha, beta, &randomEngine);
-				
-				//add it to path and update distance
-				path.push_back(next);
-				currentDistance += graphMatrix[current][next];
+			//int startNum = randomDistribution(randomEngine);
+			//path.push_back(startNum);
+			//allowed[startNum] = false;
 
-				current = next;
-			}
+			//int current = startNum;
+			//while (path.size() < cityNum) {
+			//	int next = calculateProbabilityAndSelect(Tau, heuristicValue, allowed, current, cityNum, alpha, beta, randomEngine);
+			//	
+			//	//add it to path and update distance
+			//	path.push_back(next);
+			//	currentDistance += graphMatrix[current][next];
 
-			calculateDeltaTauPerAnt(deltaTauTotal, Q, &path, currentDistance);
+			//	current = next;
+			//}
+
+			calculateDeltaTauPerAnt(deltaTauTotal, Q, path, currentDistance);
 			
-			currentDistance += graphMatrix[current][startNum];
 
 			if (currentDistance < bestLength) {
 				bestLength = currentDistance;
